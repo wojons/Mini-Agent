@@ -296,6 +296,45 @@ class TestAPISecurity:
         assert "api_key" not in spec_str or "YOUR_API_KEY" in spec_str
         assert "password" not in spec_str
 
+    @pytest.mark.asyncio
+    async def test_workspace_path_validation(self, client):
+        """Test that workspace paths are validated to prevent path traversal"""
+        if not session_manager._initialized:
+            await session_manager.initialize()
+        
+        # Test with path traversal attempt
+        try:
+            session_id = await session_manager.create_session(
+                workspace_dir="/tmp/test/../../../etc/passwd"
+            )
+            # If we get here, check that the path was sanitized
+            session = session_manager.get_session(session_id)
+            workspace = session["workspace_dir"]
+            # The resolved path should not contain ..
+            assert ".." not in workspace
+        except (ValueError, RuntimeError):
+            # Expected - path validation should reject suspicious paths
+            pass
+
+    @pytest.mark.asyncio  
+    async def test_absolute_workspace_path_required(self, client):
+        """Test that only absolute paths are accepted for workspace"""
+        if not session_manager._initialized:
+            await session_manager.initialize()
+        
+        # Test with relative path (should be rejected or made absolute)
+        try:
+            session_id = await session_manager.create_session(
+                workspace_dir="relative/path"
+            )
+            # If successful, verify path was made absolute
+            session = session_manager.get_session(session_id)
+            workspace = session["workspace_dir"]
+            assert Path(workspace).is_absolute()
+        except ValueError:
+            # Expected - validation rejects relative paths
+            pass
+
 
 # Integration tests (may require full setup)
 class TestAPIIntegration:

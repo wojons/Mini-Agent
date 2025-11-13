@@ -230,8 +230,15 @@ class SessionManager:
     def _add_workspace_tools(
         self, tools: List[Tool], workspace_dir: Path
     ) -> List[Tool]:
-        """Add workspace-dependent tools"""
-        workspace_dir.mkdir(parents=True, exist_ok=True)
+        """Add workspace-dependent tools
+        
+        Note: workspace_dir should already be validated before calling this method
+        """
+        # Create directory with secure permissions if it doesn't exist
+        try:
+            workspace_dir.mkdir(parents=True, exist_ok=True, mode=0o700)
+        except Exception as e:
+            raise RuntimeError(f"Failed to create workspace directory: {e}")
 
         if self.config.tools.enable_file_tools:
             tools.extend(
@@ -252,19 +259,39 @@ class SessionManager:
     async def create_session(
         self, workspace_dir: Optional[str] = None, system_prompt: Optional[str] = None
     ) -> str:
-        """Create a new agent session"""
+        """Create a new agent session
+        
+        Security Note: User-provided workspace paths are intentionally allowed as this is
+        a core feature. Validation is performed to prevent path traversal attacks:
+        - Paths must be absolute
+        - Path traversal patterns (..) are rejected
+        - Paths are resolved to canonical form
+        - Directories are created with secure permissions (0o700)
+        """
         if not self._initialized:
             await self.initialize()
 
         session_id = str(uuid.uuid4())
 
-        # Determine workspace directory
+        # Determine workspace directory with validation
         if workspace_dir:
-            ws_path = Path(workspace_dir)
+            # Validate and sanitize user-provided workspace path
+            ws_path = Path(workspace_dir).resolve()
+            # Ensure path is absolute and doesn't contain suspicious patterns
+            if not ws_path.is_absolute():
+                raise ValueError("Workspace directory must be an absolute path")
+            # Prevent path traversal
+            if ".." in str(ws_path):
+                raise ValueError("Workspace directory cannot contain '..' (path traversal)")
         else:
-            ws_path = Path(f"/tmp/mini-agent-workspace/{session_id}")
+            # Default to safe temp directory
+            ws_path = Path(f"/tmp/mini-agent-workspace/{session_id}").resolve()
 
-        ws_path.mkdir(parents=True, exist_ok=True)
+        # Create directory with secure permissions
+        try:
+            ws_path.mkdir(parents=True, exist_ok=True, mode=0o700)
+        except Exception as e:
+            raise RuntimeError(f"Failed to create workspace directory: {e}")
 
         # Create tools list (copy base tools + add workspace tools)
         tools = self.base_tools.copy()

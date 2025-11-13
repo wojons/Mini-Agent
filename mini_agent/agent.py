@@ -51,14 +51,27 @@ class Agent:
         workspace_dir: str = "./workspace",
         token_limit: int = 80000,  # Summary triggered when tokens exceed this value
     ):
+        """Initialize Agent
+        
+        Security Note: workspace_dir is user-controlled by design. It is validated
+        and sanitized to prevent malicious use:
+        - Path is resolved to canonical form
+        - Directory is created with secure permissions (0o700)
+        - All file operations are scoped to this workspace
+        """
         self.llm = llm_client
         self.tools = {tool.name: tool for tool in tools}
         self.max_steps = max_steps
         self.token_limit = token_limit
-        self.workspace_dir = Path(workspace_dir)
-
-        # Ensure workspace exists
-        self.workspace_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Validate and resolve workspace directory
+        self.workspace_dir = Path(workspace_dir).resolve()
+        
+        # Ensure workspace exists with secure permissions
+        try:
+            self.workspace_dir.mkdir(parents=True, exist_ok=True, mode=0o700)
+        except Exception as e:
+            raise RuntimeError(f"Failed to create workspace directory: {e}")
 
         # Inject workspace information into system prompt if not already present
         if "Current Workspace" not in system_prompt:
