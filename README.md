@@ -11,6 +11,7 @@ This project comes packed with features designed for a robust and intelligent ag
 *   ✅ **Intelligent Context Management**: Automatically summarizes conversation history to handle contexts up to a configurable token limit, enabling infinitely long tasks.
 *   ✅ **Claude Skills Integration**: Comes with 15 professional skills for documents, design, testing, and development.
 *   ✅ **MCP Tool Integration**: Natively supports MCP for tools like knowledge graph access and web search.
+*   ✅ **HTTP API with OpenAPI**: RESTful API with full OpenAPI 3.1 documentation for easy integration.
 *   ✅ **Comprehensive Logging**: Detailed logs for every request, response, and tool execution for easy debugging.
 *   ✅ **Clean & Simple Design**: A beautiful CLI and a codebase that is easy to understand, making it the perfect starting point for building advanced agents.
 
@@ -204,6 +205,30 @@ mini-agent --workspace /path/to/your/project
 
 > 📖 For more production deployment guidance, see [Production Guide](docs/PRODUCTION_GUIDE.md)
 
+> 🔌 For HTTP API usage, see [API Guide](docs/API_GUIDE.md)
+
+## HTTP API
+
+Mini Agent now includes a full-featured HTTP API with OpenAPI documentation:
+
+```bash
+# Start the API server
+mini-agent-api
+
+# Access interactive documentation
+# Swagger UI: http://127.0.0.1:8000/docs
+# ReDoc: http://127.0.0.1:8000/redoc
+# OpenAPI spec: http://127.0.0.1:8000/openapi.json
+```
+
+The API provides RESTful endpoints for:
+- 🤖 Chat with the agent
+- 📝 Session management
+- 🛠️ Tool information
+- 💚 Health checks
+
+See the [API Guide](docs/API_GUIDE.md) for complete documentation and examples.
+
 ## Usage Examples
 
 Here are a few examples of what Mini Agent can do.
@@ -280,6 +305,7 @@ python -m mini_agent.cli
 
 - [Development Guide](docs/DEVELOPMENT_GUIDE.md) - Detailed development and configuration guidance
 - [Production Guide](docs/PRODUCTION_GUIDE.md) - Best practices for production deployment
+- [API Guide](docs/API_GUIDE.md) - HTTP API documentation with OpenAPI specs
 
 ## Contributing
 

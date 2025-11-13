@@ -19,10 +19,13 @@ dependencies = [
     "prompt-toolkit>=3.0.0",
     "pip>=25.3",
     "pipx>=1.8.0",
+    "fastapi>=0.115.0",
+    "uvicorn>=0.30.0",
 ]
 
 [project.scripts]
 mini-agent = "mini_agent.cli:main"
+mini-agent-api = "mini_agent.api_server:main"
 
 [project.optional-dependencies]
 dev = [
